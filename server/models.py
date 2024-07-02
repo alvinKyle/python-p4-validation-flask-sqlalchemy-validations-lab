@@ -12,6 +12,20 @@ class Author(db.Model):
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
     # Add validators 
+    @validates('name')
+    def validate_name(self,key,name):
+        if not name:
+            raise ValueError ('Name is required')
+        author = db.session.query(Author.id).filter_by(name = name).first()
+        if author is not None:
+            raise ValueError('Name should be different')
+        return name
+    
+    @validates('phone_number')
+    def validate_phone_number(self,key,phone_number):
+        if len (phone_number) != 10 or not phone_number.isdigit():
+            raise ValueError ('phone number must contain 10 digits.')
+        return phone_number
 
     def __repr__(self):
         return f'Author(id={self.id}, name={self.name})'
@@ -28,6 +42,34 @@ class Post(db.Model):
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
     # Add validators  
+    @validates('content','summary')
+    def validate_length(self,key,string):
+
+        if key == 'content':
+            if len(string) < 250:
+                raise ValueError('post must be >= 250 characters')
+            
+        if key == 'summary':
+            if len(string) > 250:
+                    raise ValueError('post must be <= 250 characters')
+        return string
+    
+    @validates('category')
+    def validate_category(self, key, category):
+        if category != 'Fiction' and category != 'Non-Fiction':
+            raise ValueError("Category must be Fiction or Non-Fiction.")
+        return category
+    
+    
+    
+    @validates('title')
+    def validate_title(self,key,title):
+        if not title:
+            raise ValueError('Title is required')
+        cbait = ["Won't Believe", "Secret", "Top", "Guess"]
+        if not any(word in title for word in cbait):
+            raise ValueError('none found')
+        return title
 
 
     def __repr__(self):
